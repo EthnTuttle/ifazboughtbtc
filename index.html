@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>If Arizona Gov Bought Bitcoin</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .text {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+        .price {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="veto.jpeg" alt="Veto Image">
+        <div class="text">
+            If Arizona Gov had bought bitcoin instead of vetoing SB1025 from 2025 session, they would have <span id="bitcoinAmount">X</span> bitcoin (valued at ~$3b on May 2, 2025) which is now worth <span id="currentValue">$0</span>.
+        </div>
+        <div class="price" id="priceUpdate"></div>
+    </div>
+
+    <script>
+        async function fetchBitcoinPrice() {
+            try {
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+                const data = await response.json();
+                const bitcoinPrice = data.bitcoin.usd;
+                const bitcoinAmount = document.getElementById('bitcoinAmount').textContent;
+                const currentValue = bitcoinAmount * bitcoinPrice;
+                
+                document.getElementById('currentValue').textContent = `$${currentValue.toLocaleString()}`;
+                document.getElementById('priceUpdate').textContent = `Current Bitcoin Price: $${bitcoinPrice.toLocaleString()}`;
+            } catch (error) {
+                console.error('Error fetching Bitcoin price:', error);
+                document.getElementById('priceUpdate').textContent = 'Error fetching price';
+            }
+        }
+
+        // Fetch price immediately and then every 30 seconds
+        fetchBitcoinPrice();
+        setInterval(fetchBitcoinPrice, 30000);
+    </script>
+</body>
+</html> 
