@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>If Arizona Gov Bought Bitcoin</title>
+    <title>HFSP Arizona</title>
     <style>
         body {
             background-color: #121212;
@@ -16,56 +17,199 @@
             align-items: center;
             min-height: 100vh;
         }
+
         .container {
             max-width: 800px;
             text-align: center;
         }
+
+        .title {
+            font-size: 3em;
+            font-weight: bold;
+            color: #f7931a;
+            text-shadow: 0 0 15px rgba(247, 147, 26, 0.4);
+            margin-bottom: 30px;
+        }
+
         img {
             max-width: 100%;
             height: auto;
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
+
         .text {
             font-size: 1.2em;
             line-height: 1.6;
         }
+
         .price {
-            font-size: 1.5em;
+            font-size: 1.8em;
             font-weight: bold;
             margin-top: 20px;
-            color: #00ff00;
+            color: #f7931a;
+            text-shadow: 0 0 10px rgba(247, 147, 26, 0.3);
+        }
+
+        .bitcoin-amount {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #f7931a;
+        }
+
+        .dollar-amount {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #f7931a;
+            text-shadow: 0 0 10px rgba(247, 147, 26, 0.3);
+        }
+
+        .price-change {
+            animation: priceChange 0.5s ease-in-out;
+        }
+
+        .api-sources {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .attribution {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        .attribution a {
+            color: #f7931a;
+            text-decoration: none;
+        }
+
+        .attribution a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes priceChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <img src="veto.jpeg" alt="Veto Image">
+        <h1 class="title">HFSP Arizona</h1>
         <div class="text">
-            If Arizona Gov had bought bitcoin instead of vetoing SB1025 from 2025 session, they would have <span id="bitcoinAmount">X</span> bitcoin (valued at ~$3b on May 2, 2025) which is now worth <span id="currentValue">$0</span>.
+            If Arizona Gov had bought bitcoin instead of vetoing SB1025 from 2025 session, they would have <span
+                class="bitcoin-amount" id="bitcoinAmount">30,973.95</span> bitcoin (valued at ~$3b on May 3, 2025, when they could have bought at ~$<span id="missedPrice">0</span> per Bitcoin) which
+            is now worth <span class="dollar-amount" id="currentValue">$0</span>.
         </div>
         <div class="price" id="priceUpdate"></div>
+        <div class="api-sources" id="apiSources"></div>
+        <img src="veto.jpeg" alt="Veto Image">
+        <div class="attribution">
+            Made with <span style="color: #f7931a">❤️</span> by <a href="https://primal.net/gary" target="_blank">AVERAGE_GARY</a> | 
+            <a href="https://github.com/EthnTuttle/ifazboughtbtc" target="_blank">Source Code</a>
+        </div>
     </div>
 
     <script>
+        let previousPrice = 0;
+
         async function fetchBitcoinPrice() {
-            try {
-                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-                const data = await response.json();
-                const bitcoinPrice = data.bitcoin.usd;
-                const bitcoinAmount = document.getElementById('bitcoinAmount').textContent;
+            const prices = [];
+            const sources = [];
+            let errorCount = 0;
+
+            // Helper function to safely fetch and parse price
+            async function safeFetchPrice(url, parser, sourceName) {
+                try {
+                    console.log(`Fetching from ${sourceName}...`);
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        console.error(`${sourceName} HTTP error:`, response.status);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log(`${sourceName} response:`, data);
+                    const price = parser(data);
+                    if (isNaN(price)) {
+                        console.error(`${sourceName} invalid price:`, price);
+                        throw new Error('Invalid price received');
+                    }
+                    prices.push(price);
+                    sources.push(`${sourceName}: $${price.toLocaleString()}`);
+                    console.log(`${sourceName} success: $${price}`);
+                } catch (error) {
+                    console.error(`Error fetching ${sourceName} price:`, error);
+                    errorCount++;
+                }
+            }
+
+            // Fetch from working sources
+            await Promise.all([
+                // CoinGecko
+                safeFetchPrice(
+                    'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+                    data => data.bitcoin.usd,
+                    'CoinGecko'
+                ),
+                // Coinbase
+                safeFetchPrice(
+                    'https://api.coinbase.com/v2/prices/BTC-USD/spot',
+                    data => parseFloat(data.data.amount),
+                    'Coinbase'
+                )
+            ]);
+
+            console.log('All fetches completed. Prices:', prices);
+            console.log('Sources:', sources);
+            console.log('Error count:', errorCount);
+
+            // Only proceed if we have at least one valid price
+            if (prices.length > 0) {
+                const bitcoinPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+                const bitcoinAmount = parseFloat(document.getElementById('bitcoinAmount').textContent.replace(/,/g, ''));
                 const currentValue = bitcoinAmount * bitcoinPrice;
+                const missedValue = 3000000000; // $3 billion
+                const missedBitcoinPrice = missedValue / bitcoinAmount;
+                
+                // Add animation class if price changed
+                if (previousPrice !== bitcoinPrice) {
+                    document.getElementById('priceUpdate').classList.add('price-change');
+                    document.getElementById('currentValue').classList.add('price-change');
+                    document.getElementById('missedPrice').classList.add('price-change');
+                    
+                    // Remove animation class after animation completes
+                    setTimeout(() => {
+                        document.getElementById('priceUpdate').classList.remove('price-change');
+                        document.getElementById('currentValue').classList.remove('price-change');
+                        document.getElementById('missedPrice').classList.remove('price-change');
+                    }, 500);
+                }
+                
+                previousPrice = bitcoinPrice;
                 
                 document.getElementById('currentValue').textContent = `$${currentValue.toLocaleString()}`;
                 document.getElementById('priceUpdate').textContent = `Current Bitcoin Price: $${bitcoinPrice.toLocaleString()}`;
-            } catch (error) {
-                console.error('Error fetching Bitcoin price:', error);
-                document.getElementById('priceUpdate').textContent = 'Error fetching price';
+                document.getElementById('missedPrice').textContent = `${missedBitcoinPrice.toLocaleString()}`;
+                
+                // Show which sources are working and which failed
+                const statusText = errorCount > 0 
+                    ? `Average of ${sources.join(', ')} (${errorCount} source${errorCount > 1 ? 's' : ''} unavailable)`
+                    : `Average of ${sources.join(', ')}`;
+                document.getElementById('apiSources').textContent = statusText;
+            } else {
+                // If all sources failed
+                document.getElementById('priceUpdate').textContent = 'Unable to fetch price from any source';
+                document.getElementById('missedPrice').textContent = '0';
+                document.getElementById('apiSources').textContent = 'All price sources unavailable';
             }
         }
 
-        // Fetch price immediately and then every 30 seconds
-        fetchBitcoinPrice();
-        setInterval(fetchBitcoinPrice, 30000);
+        // Wait 500ms after page load before fetching price
+        setTimeout(fetchBitcoinPrice, 500);
     </script>
 </body>
-</html> 
+
+</html>
