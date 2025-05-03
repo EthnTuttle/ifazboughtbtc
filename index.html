@@ -88,6 +88,24 @@
             text-decoration: underline;
         }
 
+        .footnote {
+            margin-top: 40px;
+            font-size: 0.8em;
+            color: #888;
+            text-align: left;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+
+        .footnote h3 {
+            color: #f7931a;
+            margin-top: 20px;
+        }
+
+        .footnote p {
+            margin: 10px 0;
+        }
+
         @keyframes priceChange {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -101,12 +119,25 @@
         <h1 class="title">HFSP Arizona</h1>
         <div class="text">
             If Arizona Gov had bought bitcoin instead of vetoing SB1025 from 2025 session, they would have <span
-                class="bitcoin-amount" id="bitcoinAmount">30,973.95</span> bitcoin (valued at ~$3b on May 3, 2025, when they could have bought at ~$<span id="missedPrice">0</span> per Bitcoin) which
+                class="bitcoin-amount" id="bitcoinAmount">82,370</span> bitcoin (valued at ~$7.8b on April 28, 2025, when they could have bought at ~$<span id="missedPrice">0</span> per Bitcoin) which
             is now worth <span class="dollar-amount" id="currentValue">$0</span>.
         </div>
         <div class="price" id="priceUpdate"></div>
         <div class="api-sources" id="apiSources"></div>
         <img src="veto.jpeg" alt="Veto Image">
+        <div class="footnote">
+            <h3>About Senate Bill 1025 (May 3, 2025)</h3>
+            <p>Senate Bill 1025, also known as the "Arizona Strategic Bitcoin Reserve Act," allows the Arizona State Treasurer and state retirement systems to invest up to 10% of public funds under their control in virtual currencies, primarily Bitcoin.</p>
+            
+            <h3>Available Public Funds</h3>
+            <p>Based on Arizona's general fund ($28 billion) and state retirement systems ($50 billion), the total public funds under management are approximately $78 billion. The bill permits up to 10% of these funds to be invested in Bitcoin, which equates to $7.8 billion.</p>
+            
+            <h3>Bitcoin Price Context</h3>
+            <p>On April 28, 2025, Bitcoin was trading at approximately $94,680. Using this price point, Arizona could have purchased approximately 82,370 BTC with the $7.8 billion allocation.</p>
+            
+            <h3>Practical Considerations</h3>
+            <p>SB1025 allows but does not mandate investing up to 10%. The actual amount invested could be lower, depending on the State Treasurer's discretion and market conditions. The bill includes provisions for secure storage in a federal Strategic Bitcoin Reserve or cold/multi-signature wallets.</p>
+        </div>
         <div class="attribution">
             Vibed with <span style="color: #f7931a">❤️</span> by <a href="https://primal.net/gary" target="_blank">AVERAGE_GARY</a> | 
             <a href="https://github.com/EthnTuttle/ifazboughtbtc" target="_blank">Source Code</a>
@@ -171,7 +202,7 @@
                 const bitcoinPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
                 const bitcoinAmount = parseFloat(document.getElementById('bitcoinAmount').textContent.replace(/,/g, ''));
                 const currentValue = bitcoinAmount * bitcoinPrice;
-                const missedValue = 3000000000; // $3 billion
+                const missedValue = 7800000000; // $7.8 billion
                 const missedBitcoinPrice = missedValue / bitcoinAmount;
                 
                 // Add animation class if price changed
